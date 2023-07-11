@@ -1,2 +1,2 @@
 # technology-blog
-personal article output
+个人技术文章输出

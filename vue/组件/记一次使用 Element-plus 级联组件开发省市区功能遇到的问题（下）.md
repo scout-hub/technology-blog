@@ -12,7 +12,7 @@ git clone https://github.com/element-plus/element-plus.git
 
 克隆完成后的目录如下图所示，其中`packages`目录中包含核心组件的逻辑，`play`目录则是用来调试的目录，我们可以在`play`目录中添加 demo 代码。
 
-![image-20230913153858522](../../Library/Application Support/typora-user-images/image-20230913153858522.png)
+![image-20231206120115695](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231206120115695.png)
 
 ### 二、安装依赖
 
@@ -26,7 +26,7 @@ pnpm i
 
 前面说了`play`目录可以用来进行组件测试，我们在`play`目录中添加对应的 demo 用例。
 
-![image-20230913154505039](../../Library/Application Support/typora-user-images/image-20230913154505039.png)
+![image-20231206120141885](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231206120141885.png)
 
 
 
@@ -48,7 +48,7 @@ pnpm i
 
 ![image-20230913160026793](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20230913160026793.png)
 
-注意：在断点调试的时候可能会发现断点漂移的情况，大概情况进入某个方法时，断点并没有定位到方法第一行，而是定位到了下面某行代码上，实际逻辑运行还是在第一行。这个问题可能是由于某些插件导致的，在对插件进行排除的过程中，我发现是`rollup-plugin-esbuild`的问题，因此我们需要把这个插件注释了。
+注意：在断点调试的时候可能会发现断点漂移的情况，大概情况就是进入某个方法时，断点并没有定位到方法第一行，而是定位到了下面某行代码上，实际逻辑运行还是在第一行。这个问题可能是由于某些插件导致的，在对插件进行排除的过程中，我发现是`rollup-plugin-esbuild`的问题，因此我们需要把这个插件注释了。
 
 ![image-20230914160647583](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20230914160647583.png)
 
@@ -74,7 +74,7 @@ pnpm i
 
 接下去执行`cb(dataList)`回调，在回调中会执行`syncCheckedValue`。
 
-![image-20230913164244187](../../Library/Application Support/typora-user-images/image-20230913164244187.png)
+![image-20231206120038762](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231206120038762.png)
 
 在`syncCheckedValue`中会获取一些数据，比如此时传入的`modelValue`值，是否是懒加载`lazy`以及节点是否加载完成`loaded`。根据此时获取到的值会走`if (lazy && !loaded) `这条分支代码。
 
@@ -92,7 +92,7 @@ pnpm i
 
 ![image-20230913165954873](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20230913165954873.png)
 
- 结果还是不尽如意人，北京市依旧在圈圈，那么问题可能不止这一个点，我们需要继续往下调试。接下去会再次执行`lazyload`去加载当前节点的子节点数据，接下去的子节点就是北京市的下一级节点，在 demo 中就是`city`中的北京市。
+ 结果还是不尽如意人，北京市依旧在转圈圈，那么问题可能不止这一个点，我们需要继续往下调试。接下去会再次执行`lazyload`去加载当前节点的子节点数据，接下去的子节点就是北京市的下一级节点，在 demo 中就是`city`中的北京市。
 
 ![image-20230913170136790](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20230913170136790.png)
 
@@ -160,7 +160,7 @@ pnpm i
 
 `handleExpand`方法中会执行`doLoad`方法，在`doLoad`方法中会调用之前讲过的`lazyLoad`方法去加载节点数据，加载完成后会执行 cb 回调，这里的回调就是`()=> if(!isLeaf.value) doExpand()`，这里读取`isLeaf.value`时会触发`get`操作，`get`操作中会对`leaf`的值进行计算。
 
-![image-20230914165223219](../../Library/Application Support/typora-user-images/image-20230914165223219.png)
+![image-20231206115616536](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231206115616536.png)
 
 在对节点`Option-4`的`leaf`计算时，由于其子节点`childrenData`是空数组，因此会将`leaf`标记为`true`。在我们刚才操作的过程中也可以看到，当点击`Option-4`节点时会处于一个加载状态，随后这个节点右边的箭头消失了，也就是说此时`Option-4`确实变成了叶子节点，但是为什么再次点击这个节点时却无法选中数据？我们继续看逻辑。
 

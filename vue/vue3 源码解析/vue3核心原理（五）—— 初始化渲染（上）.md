@@ -807,14 +807,124 @@ export function normalizeVNode(child) {
 
 ![image-20231211114647352](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231211114647352.png)
 
-当 `subTree` 子树创建完成后就会进入到 `patch` 方法中进行真正的视图更新流程，这部分放到下一章讲解。
+当 `subTree` 子树创建完成后就会进入到 `patch` 方法中进行真正的视图更新流程。其中，`subTree` 是上一步生成的子节点的 vnode，`container`则是容器节点。
 
-当视图更新完成后会将当前创建好的视图节点缓存到 `initialVNode.el` 中并将 `isMounted` 标记为 true。
+![image-20231211153023627](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231211153023627.png)
+
+`patch` 方法逻辑：
+
+```typescript
+// packages/runtime-core/src/renderer.ts
+/**
+   * @author: Zhouqi
+   * @description: 更新函数
+   * @param n1 老的虚拟节点
+   * @param n2 新的虚拟节点
+   * @param container 容器
+   * @param anchor 锚点元素
+   * @param parentComponent 父组件实例
+   * @param optimized 是否优化
+   */
+  const patch = (n1, n2, container, anchor = null, parentComponent, optimized = !!n2.dynamicChildren) => {
+    if (n1 === n2) return;
+    // 省略部分代码
+    const { shapeFlag, type } = n2;
+
+    switch (type) {
+      // 特殊虚拟节点类型处理
+      case Fragment:
+        // 处理type为Fragment的节点（插槽）
+        processFragment(n1, n2, container, anchor, parentComponent, optimized);
+        break;
+      case Comment:
+        // 处理注释节点
+        processCommentNode(n1, n2, container, anchor);
+        break;
+      case Text:
+        // 处理文本节点
+        processText(n1, n2, container, anchor);
+        break;
+      default:
+        // if is element
+        if (shapeFlag & ShapeFlags.ELEMENT) {
+          processElement(n1, n2, container, anchor, parentComponent, optimized);
+        } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // 有状态、函数式组件
+          processComponent(n1, n2, container, anchor, parentComponent);
+        } else if (shapeFlag & ShapeFlags.TELEPORT) {
+          type.process(n1, n2, container, anchor, parentComponent, internals);
+        }
+    }
+  };
+```
+
+其实 `patch` 逻辑的结构和 `mount` 逻辑的结构是类似的，根据不同 vnode 的类型走不同的处理逻辑。在我们的例子中，传入的 n2 是 div 对应的 vnode，因此它会走 `processElement` 这个逻辑，这是专门用来处理普通元素节点的方法。
+
+![image-20231211160544750](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231211160544750.png)
+
+`processElement`的逻辑：
+
+```typescript
+ /**
+   * @author: Zhouqi
+   * @description: 处理普通元素
+   * @param n1 老的虚拟节点
+   * @param n2 新的虚拟节点
+   * @param container 父容器
+   * @param anchor 锚点元素
+   * @param parentComponent 父组件实例
+   * @param optimized 是否优化
+   */
+  const processElement = (n1, n2, container, anchor, parentComponent, optimized) => {
+    // 旧的虚拟节点不存在，说明是初始化渲染
+    if (n1 === null) {
+      mountElement(n2, container, anchor, parentComponent, optimized);
+    } else {
+      // 更新
+      patchElement(n1, n2, parentComponent, optimized);
+    }
+  };
+```
+
+`processElement` 中会根据老的 vnode 是否存在走不同的处理逻辑，在初始化挂载阶段会走`mountElement`的逻辑。
+
+```typescript
+// packages/runtime-core/src/renderer.ts
+/**
+   * @author: Zhouqi
+   * @description: 生成普通元素
+   * @param  vnode 虚拟dom
+   * @param  container 父容器
+   * @param  anchor 锚点元素
+   * @param  parentComponent 父组件实例
+   */
+  const mountElement = (vnode, container, anchor, parentComponent, optimized) => {
+    const { type, props, children, shapeFlag, transition, dirs } = vnode;
+    const el = (vnode.el = hostCreateElement(type));
+    // 处理children
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      // 孩子是一个字符串表示文本类型
+      hostSetElementText(el, children);
+    } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      // 处理数组类型的孩子节点
+      // #fix bug example defineAsyncComponent 新建子节点的时候不需要锚点元素
+      // mountChildren(children, el, anchor, parentComponent);
+      mountChildren(children, el, null, parentComponent, optimized);
+    }
+    hostInsert(el, container, anchor);
+  };
+```
+
+在 `mountElement` 中会先创建 vnode 对应的节点，在我们的例子中这个 vnode 是个 div 节点，因此这里会调用 `hostCreateElement` 创建 div 对应的真实节点，这个`hostCreateElement`就是`createElement`。
+
+![image-20231211163737161](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231211163737161.png)
+
+接下去会处理子节点，在我们的例子中没有子节点，因此直接执行最后一步 `hostInsert`，将节点插入到父节点中，这个`hostInsert` 就是 `insertBefore`。
+
+当`patch`完成后会将当前创建好的视图节点缓存到 `initialVNode.el` 中并将 `isMounted` 标记为 true。
 
 ![image-20231211115612956](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231211115612956.png)
 
 此时我们也能看到视图上有了 div 这个节点。
 
 ![image-20231211115312155](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231211115312155.png)
-
-下一章节将介绍初始化渲染流程中关于 `patch` 部分的逻辑。

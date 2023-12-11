@@ -928,3 +928,5 @@ export function normalizeVNode(child) {
 此时我们也能看到视图上有了 div 这个节点。
 
 ![image-20231211115312155](https://raw.githubusercontent.com/scout-hub/picgo-bed/dev/image-20231211115312155.png)
+
+这部分我们用了一个比较简单的例子了解 vue3 最基本的初始化流程，下一节会介绍其它各种节点的处理。

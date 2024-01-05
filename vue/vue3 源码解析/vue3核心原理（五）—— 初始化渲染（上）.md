@@ -740,12 +740,8 @@ new Vue({
         // 省略更新的逻辑
       }
     };
-    const effect = new ReactiveEffect(componentUpdateFn, () => {
-      // 自定义调度器，当多个同步任务触发更新时，将任务放入微任务队列中，避免多次更新
-      queueJob(instance.update);
-    });
+    const effect = new ReactiveEffect(componentUpdateFn);
     const update = (instance.update = effect.run.bind(effect));
-    // 收集依赖，在依赖的响应式数据变化后可以执行更新
     update();
   };
 ```

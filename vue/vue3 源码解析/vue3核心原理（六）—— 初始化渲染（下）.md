@@ -118,17 +118,16 @@ Fragment 类型的节点会经过 `processFragment`的处理。
    * @param parentComponent 父组件实例
    * @param optimized 是否优化
    */
-  const processFragment = (n1, n2, container, anchor, parentComponent, optimized) => {
-    let { patchFlag, dynamicChildren } = n2;
+const processFragment = (n1, n2, container, anchor, parentComponent, optimized) => {
+  // 省略部分代码
+  if (n1 === null) {
     // 省略部分代码
-    if (n1 === null) {
-			// 省略部分代码
-      const { children } = n2;
-      mountChildren(children, container, fragmentEndAnchor, parentComponent, optimized);
-    } else {
-      // 省略更新逻辑
-    }
-  };
+    const { children } = n2;
+    mountChildren(children, container, fragmentEndAnchor, parentComponent, optimized);
+  } else {
+    // 省略更新逻辑
+  }
+};
 ```
 
 在`processFragment`中，如果是初始化挂载阶段会直接执行 `mountChildren` 方法处理子节点。

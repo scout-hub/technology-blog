@@ -1,4 +1,4 @@
-# vue3核心原理（七）——  普通元素的属性绑定以及事件处理机制
+# vue3核心原理（七）——  属性绑定（上）
 
 ### 该部分解析基于我们实现的simplify-vue3中的代码，是vue3源码的阉割版，希望用最简洁的代码来了解vue3的核心原理。其中大部分逻辑和结构都和源码保持一致，方便阅读源代码。
 
@@ -331,7 +331,16 @@ function shouldSetAsProp(el, key, value) {
  * @param value 值
  */
 export function patchDOMProp(el, key, value) {
-  // 省略部分代码
+  if (value === "" || value === null) {
+    const type = typeof el[key];
+    // 对于dom属性上的值为boolean的情况下，如果设置的值是空的则需要转化为true
+    if (type === "boolean") {
+      el[key] = true;
+      return;
+    }
+    el.removeAttribute(key);
+    return;
+  }
   el[key] = value;
 }
 

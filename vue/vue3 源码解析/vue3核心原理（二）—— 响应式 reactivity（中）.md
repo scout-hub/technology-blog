@@ -631,7 +631,7 @@ export function computed<T>(getter: ComputedGetter<T>) {
 
 `computed`函数内部返回了一个`ComputedRefImpl`实例，这个`ComputedRefImpl`在实例化的时候会先创建一个`ReactiveEffect`实例，我们简称它为`lazyEffect`，因为它不会立即执行传入的`getter`依赖函数，只有调用了内部的`run`方法才会执行。这也符合`computed`的思想，当我们用`computed`创建计算属性时，只有访问其`value`属性才会拿到计算结果。因此这里需要定义一个`get value`的逻辑，当访问`value`属性时需要调用`this._lazyEffect.run()`方法执行传入的`getter`依赖函数，拿到计算结果，这个计算结果会被作为`oldValue`。
 
-这里还有一个内部属性`_dirty`，这个`_dirty`被当做是否需要重新计算新值的标记，值为`true`时表示需要重新计算新值，值为`false` 时不会计算。当我们多次访问`value`属性时，只有第一次会计算，后面几次只会使用第一次的计算结果`oldValue`，从而达到缓存的效果。既然`oldValue`是重新计算的一个标记，那么就必须在内部依赖数据改变的时让它重新变成`true`，否则没办法重新计算新的值。这就要借助`effect`的自定义调度功能了。
+这里还有一个内部属性`_dirty`，这个`_dirty`被当做是否需要重新计算新值的标记，值为`true`时表示需要重新计算新值，值为`false` 时不会计算。当我们多次访问`value`属性时，只有第一次会计算，后面几次只会使用第一次的计算结果`oldValue`，从而达到缓存的效果。既然`_dirty`是重新计算的一个标记，那么就必须在内部依赖数据改变的时让它重新变成`true`，否则没办法重新计算新的值。这就要借助`effect`的自定义调度功能了。
 
 在创建`lazyEffect`的时候我们传入了第二个参数，这个参数表示自定义调度函数，当`effect`内部依赖的响应式数据改变时不会触发依赖函数，而是会触发我们传入的自定义调度函数。这个逻辑在`triggerEffect`中：
 
